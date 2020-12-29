@@ -7,6 +7,47 @@ import (
 	"testing"
 )
 
+func TestBooleanExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		{"true;", true},
+		{"false;", false},
+	}
+	for _, tt := range tests {
+
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		if len(program.Statements) != 1 {
+			t.Fatalf("program has incorrect number of statements, got %d",
+				len(program.Statements))
+		}
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statements[0] is not ast.ExpressionStatement, got %T",
+				program.Statements[0])
+		}
+
+		ident, ok := stmt.Expression.(*ast.Boolean)
+		if !ok {
+			t.Fatalf("stmt is not *ast.Boolean, got %T", stmt.Expression)
+		}
+
+		if ident.Value != tt.expected {
+			t.Errorf("ident.Value is not %t, got %t", true, ident.Value)
+		}
+
+		if ident.TokenLiteral() != fmt.Sprintf("%t", tt.expected) {
+			t.Errorf("ident.TokenLiteral() is not %s, got %s", fmt.Sprintf("%t", tt.expected), ident.TokenLiteral())
+		}
+	}
+}
+
 func TestLetStatements(t *testing.T) {
 	input := `
 	let x=5;
@@ -192,6 +233,22 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 		{
 			"3 + 4 * 5 == 3 * 1 + 4 * 5",
 			"((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))",
+		},
+		{
+			"true",
+			"true",
+		},
+		{
+			"false",
+			"false",
+		},
+		{
+			"3 > 5 == false",
+			"((3 > 5) == false)",
+		},
+		{
+			"3 < 5 == true",
+			"((3 < 5) == true)",
 		},
 	}
 
