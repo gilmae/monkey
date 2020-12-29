@@ -7,6 +7,20 @@ import (
 	"testing"
 )
 
+func TestEvalBooleanExpression(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected bool
+	}{
+		{"true", true},
+		{"false", false},
+	}
+
+	for _, tt := range tests {
+		evaluated := testEval(tt.input)
+		testBooleanObject(t, evaluated, tt.expected)
+	}
+}
 func TestEvalIntegerExpression(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -28,6 +42,22 @@ func testEval(input string) object.Object {
 	program := p.ParseProgram()
 
 	return Eval(program)
+}
+
+func testBooleanObject(t *testing.T, obj object.Object, expected bool) bool {
+	result, ok := obj.(*object.Boolean)
+	if !ok {
+		t.Errorf("obj is not Boolean, got %T (%+v)", obj, obj)
+		return false
+	}
+
+	if result.Value != expected {
+		t.Errorf("object has wrong value, expected %t, got %t",
+			expected,
+			result.Value)
+		return false
+	}
+	return true
 }
 
 func testIntegerObject(t *testing.T, obj object.Object, expected int64) bool {
