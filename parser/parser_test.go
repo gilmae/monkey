@@ -48,6 +48,90 @@ func TestBooleanExpression(t *testing.T) {
 	}
 }
 
+func TestFunctionLiteralExpression(t *testing.T) {
+	input := "fn(x,y){x+y;}"
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program has incorrect number of statements, got %d",
+			len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement, got %T",
+			program.Statements[0])
+	}
+
+	fn, ok := stmt.Expression.(*ast.FunctionLiteral)
+	if !ok {
+		t.Fatalf("stmt is not *ast.FunctionLiteral, got %T", stmt.Expression)
+	}
+
+	if len(fn.Parameters) != 2 {
+		t.Fatalf("function literal parameters wrong, want 2, got %d", len(fn.Parameters))
+	}
+
+	testLiteralExpression(t, fn.Parameters[0], "x")
+	testLiteralExpression(t, fn.Parameters[1], "y")
+
+	if len(fn.Body.Statements) != 1 {
+		t.Fatalf("fn.Body.Statements wrong, want 1, got %d", len(fn.Body.Statements))
+	}
+
+	bodyStmt, ok := fn.Body.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("fn.Body.Statements[0] is not ast.ExpressionStatement, got %T",
+			program.Statements[0])
+	}
+
+	testInfixExpression(t, bodyStmt.Expression, "x", "+", "y")
+}
+
+func TestFunctionParamaterParsing(t *testing.T) {
+	tests := []struct {
+		input          string
+		expectedParams []string
+	}{
+		{input: "fn(){};", expectedParams: []string{}},
+		{input: "fn(x){};", expectedParams: []string{"x"}},
+		{input: "fn(x,y, z){};", expectedParams: []string{"x", "y", "z"}},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+		if !ok {
+			t.Fatalf("program.Statements[0] is not ast.ExpressionStatement, got %T",
+				program.Statements[0])
+		}
+
+		fn, ok := stmt.Expression.(*ast.FunctionLiteral)
+		if !ok {
+			t.Fatalf("stmt.Expression is not ast.FunctionLiteral, got %T",
+				program.Statements[0])
+		}
+
+		if len(fn.Parameters) != len(tt.expectedParams) {
+			t.Fatalf("fn.Parameters is wrong, expected %d, got %d",
+				len(tt.expectedParams),
+				len(fn.Parameters))
+		}
+
+		for i, ident := range tt.expectedParams {
+			testLiteralExpression(t, fn.Parameters[i], ident)
+		}
+	}
+}
+
 func TestLetStatements(t *testing.T) {
 	input := `
 	let x=5;
