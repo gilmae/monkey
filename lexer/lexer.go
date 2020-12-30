@@ -146,7 +146,9 @@ func (l *Lexer) readString() string {
 	}
 
 	str := l.input[position:l.position]
-
+	if len(str) == 0 {
+		return str
+	}
 	ret := ""
 	position = 0
 	for {
