@@ -280,6 +280,20 @@ f(10);`,
 	}
 }
 
+func TestStringLiteral(t *testing.T) {
+	input := `"hello world`
+
+	evaluated := testEval(input)
+	str, ok := evaluated.(*object.String)
+	if !ok {
+		t.Fatalf("object is not String, got %T (%+v)", evaluated, evaluated)
+	}
+
+	if str.Value != "hello world" {
+		t.Errorf("String has wrong value, expected %s, got %s", "hello world", str.Value)
+	}
+}
+
 func testEval(input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)
