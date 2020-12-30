@@ -144,7 +144,38 @@ func (l *Lexer) readString() string {
 			break
 		}
 	}
-	return l.input[position:l.position]
+
+	str := l.input[position:l.position]
+
+	ret := ""
+	position = 0
+	for {
+		ch := str[position]
+		if ch == '\\' {
+			switch str[position+1] {
+			case 't':
+				ret = ret + string('\t')
+				position += 1
+			case 'n':
+				ret = ret + string('\n')
+				position += 1
+			case '\\':
+				ret = ret + string('\\')
+				position += 1
+			default:
+				ret = ret + string('\\')
+			}
+		} else {
+			ret = ret + string(ch)
+		}
+		position = position + 1
+		if position >= len(str) {
+			break
+		}
+
+	}
+
+	return ret
 }
 
 func (l *Lexer) skipWhitespace() {
