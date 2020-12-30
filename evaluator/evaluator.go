@@ -14,6 +14,26 @@ var (
 
 func Eval(node ast.Node, env *object.Environment) object.Object {
 	switch node := node.(type) {
+	case *ast.ArrayLiteral:
+		elements := evalExpressions(node.Elements, env)
+		if len(elements) == 1 && isError(elements[0]) {
+			return elements[0]
+		}
+		return &object.Array{Elements: elements}
+	case *ast.IndexExpression:
+		arr := Eval(node.Left, env)
+
+		if isError(arr) {
+			return arr
+		}
+
+		index := Eval(node.Index, env)
+
+		if isError(index) {
+			return index
+		}
+
+		return evalIndexExpression(arr, index)
 	case *ast.BlockStatement:
 		return evalBlockStatements(node, env)
 	case *ast.Boolean:
@@ -147,6 +167,26 @@ func evalIdentifer(node *ast.Identifier, env *object.Environment) object.Object 
 		return builtin
 	}
 	return newError("identifier not found: " + node.Value)
+}
+
+func evalIndexExpression(arr object.Object, index object.Object) object.Object {
+	if arr.Type() == object.ARRAY_OBJ && index.Type() == object.INTEGER_OBJ {
+		return evalArrayIndexExpression(arr, index)
+	}
+
+	return newError("index operation not supportedL %s", arr.Type())
+}
+
+func evalArrayIndexExpression(arr object.Object, index object.Object) object.Object {
+	arrayVal := arr.(*object.Array)
+	indexVal := index.(*object.Integer).Value
+	max := int64(len(arrayVal.Elements))
+
+	if (indexVal < 0) || indexVal >= max {
+		return NULL
+	}
+
+	return arrayVal.Elements[indexVal]
 }
 
 func evalIfExpression(ie *ast.IfExpression, env *object.Environment) object.Object {

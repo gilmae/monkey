@@ -17,18 +17,20 @@ const (
 	PRODUCT     // *
 	PREFIX      // -x or !x
 	CALL        // myFunction(x)
+	INDEX
 )
 
 var precedences = map[token.TokenType]int{
-	token.EQ:      EQUALS,
-	token.NOTEQ:   EQUALS,
-	token.LT:      LESSGREATER,
-	token.GT:      LESSGREATER,
-	token.PLUS:    SUM,
-	token.MINUS:   SUM,
-	token.FSLASH:  PRODUCT,
-	token.ASTERIX: PRODUCT,
-	token.LPAREN:  CALL,
+	token.EQ:       EQUALS,
+	token.NOTEQ:    EQUALS,
+	token.LT:       LESSGREATER,
+	token.GT:       LESSGREATER,
+	token.PLUS:     SUM,
+	token.MINUS:    SUM,
+	token.FSLASH:   PRODUCT,
+	token.ASTERIX:  PRODUCT,
+	token.LPAREN:   CALL,
+	token.LBRACKET: INDEX,
 }
 
 type Parser struct {
@@ -77,6 +79,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.LT, p.parseInfixExpression)
 	p.registerInfix(token.GT, p.parseInfixExpression)
 	p.registerInfix(token.LPAREN, p.parseCallExpression)
+	p.registerInfix(token.LBRACKET, p.parseIndexExpression)
 
 	return p
 }
@@ -225,6 +228,18 @@ func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
 	}
 
 	return stmt
+}
+
+func (p *Parser) parseIndexExpression(left ast.Expression) ast.Expression {
+	idx := &ast.IndexExpression{Token: p.curToken, Left: left}
+
+	p.nextToken()
+	idx.Index = p.parseExpression(LOWEST)
+	if !p.expectPeek(token.RBRACKET) {
+		return nil
+	}
+
+	return idx
 }
 
 func (p *Parser) parseFunctionLiteral() ast.Expression {
