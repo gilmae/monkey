@@ -280,6 +280,20 @@ f(10);`,
 	}
 }
 
+func TestStringConcatenation(t *testing.T) {
+	input := `"Hello" + " " + "world!"`
+
+	evaluated := testEval(input)
+	str, ok := evaluated.(*object.String)
+	if !ok {
+		t.Fatalf("object is not String, got %T (%+v)", evaluated, evaluated)
+	}
+
+	if str.Value != "Hello world!" {
+		t.Errorf("String has wrong value, expected %s, got %s", "Hello world!", str.Value)
+	}
+}
+
 func TestStringLiteral(t *testing.T) {
 	input := `"hello world`
 
