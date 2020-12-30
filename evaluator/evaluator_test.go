@@ -113,26 +113,66 @@ func TestBuiltinFunctions(t *testing.T) {
 		{`len("hello world")`, 11},
 		{`len(1)`, "argument to `len` not supported, got INTEGER"},
 		{`len("one", "two")`, "wrong number of arguments. got=2, want=1"},
+		{`len([1, 2, 3])`, 3},
+		{`len([])`, 0},
+		{`first([1, 2, 3])`, 1},
+		{`first([])`, nil},
+		{`first("hello world")`, "h"},
+		{`first("")`, nil},
+		{`first(1)`, "argument to `first` not supported, got INTEGER"},
+		{`last([1, 2, 3])`, 3},
+		{`last([])`, nil},
+		{`last("hello world")`, "d"},
+		{`last("")`, nil},
+		{`last(1)`, "argument to `last` not supported, got INTEGER"},
+		{`rest([1, 2, 3])`, []int{2, 3}},
+		{`rest([])`, nil},
+		{`rest("hello world")`, "ello world"},
+		{`rest([])`, nil},
+		{`rest(1)`, "argument to `rest` not supported, got INTEGER"},
 	}
-
 	for _, tt := range tests {
 		evaluated := testEval(tt.input)
 
 		switch expected := tt.expected.(type) {
 		case int:
 			testIntegerObject(t, evaluated, int64(expected))
+		case nil:
+			testNullObject(t, evaluated)
 		case string:
-			errObj, ok := evaluated.(*object.Error)
+			if str, ok := evaluated.(*object.String); ok {
+				if str.Value != expected {
+					t.Errorf("string has wrong value, expected=%s, got=%s", expected, str.Value)
+				}
+			} else {
+
+				errObj, ok := evaluated.(*object.Error)
+				if !ok {
+					t.Errorf("object is not Error. got=%T (%+v)",
+						evaluated, evaluated)
+					continue
+				}
+				if errObj.Message != expected {
+					t.Errorf("wrong error message. expected=%q, got=%q",
+						expected, errObj.Message)
+				}
+			}
+		case []int:
+			array, ok := evaluated.(*object.Array)
 			if !ok {
-				t.Errorf("object is not Error. got=%T (%+v)",
-					evaluated, evaluated)
+				t.Errorf("obj not Array. got=%T (%+v)", evaluated, evaluated)
 				continue
 			}
-			if errObj.Message != expected {
-				t.Errorf("wrong error message. expected=%q, got=%q",
-					expected, errObj.Message)
+
+			if len(array.Elements) != len(expected) {
+				t.Errorf("wrong num of elements. want=%d, got=%d",
+					len(expected), len(array.Elements))
+				continue
 			}
 
+			for i, expectedElem := range expected {
+				testIntegerObject(t, array.Elements[i], int64(expectedElem))
+			}
 		}
 	}
 }
