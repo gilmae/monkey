@@ -27,8 +27,10 @@ const (
 	EQ    = "=="
 	NOTEQ = "!="
 
-	GT = "GT"
-	LT = "LT"
+	GT  = "GT"
+	LT  = "LT"
+	GTE = "GTE"
+	LTE = "LTE"
 
 	COMMA     = ","
 	SEMICOLON = ";"
