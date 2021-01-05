@@ -51,6 +51,7 @@ const (
 	ELSE     = "ELSE"
 	RETURN   = "RETURN"
 	STRING   = "STRING"
+	USE      = "USE"
 )
 
 var keywords = map[string]TokenType{
@@ -61,6 +62,7 @@ var keywords = map[string]TokenType{
 	"return": RETURN,
 	"if":     IF,
 	"else":   ELSE,
+	"use":    USE,
 }
 
 // LookupIdent checks if an identifier is a keyword or a user identifier

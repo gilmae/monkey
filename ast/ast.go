@@ -320,3 +320,22 @@ func (o *HashLiteral) String() string {
 	out.WriteString("}")
 	return out.String()
 }
+
+type UseLiteral struct {
+	Token token.Token
+	Value Expression
+	Body  *Program
+}
+
+func (ul *UseLiteral) expressionNode()      {}
+func (ul *UseLiteral) TokenLiteral() string { return ul.Token.Literal }
+func (ul *UseLiteral) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(ul.TokenLiteral())
+	out.WriteString("(")
+	out.WriteString(ul.Value.String())
+	out.WriteString(")")
+
+	return out.String()
+}

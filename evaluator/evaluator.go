@@ -100,6 +100,8 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		return &object.ReturnValue{Value: val}
 	case *ast.StringLiteral:
 		return &object.String{Value: node.Value}
+	case *ast.UseLiteral:
+		return evalProgram(node.Body, env)
 
 	}
 	return nil

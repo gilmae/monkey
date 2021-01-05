@@ -30,7 +30,7 @@ func TestNextToken(t *testing.T) {
 	"foo bar"
 	[1,2]
 	{"foo":"bar"}
-	`
+	use("foobar")`
 
 	tests := []struct {
 		expectedType    token.TokenType
@@ -126,6 +126,10 @@ func TestNextToken(t *testing.T) {
 		{token.COLON, ":"},
 		{token.STRING, "bar"},
 		{token.RBRACE, "}"},
+		{token.USE, "use"},
+		{token.LPAREN, "("},
+		{token.STRING, "foobar"},
+		{token.RPAREN, ")"},
 		{token.EOF, ""},
 	}
 

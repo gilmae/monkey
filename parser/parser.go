@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"io/ioutil"
 	"monkey/ast"
 	"monkey/lexer"
 	"monkey/token"
@@ -71,6 +72,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.STRING, p.parseStringLiteral)
 	p.registerPrefix(token.LBRACKET, p.parseArrayLiteral)
 	p.registerPrefix(token.LBRACE, p.parseHashLiteral)
+	p.registerPrefix(token.USE, p.parseUseLiteral)
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.registerInfix(token.PLUS, p.parseInfixExpression)
@@ -463,6 +465,29 @@ func (p *Parser) parseStatement() ast.Statement {
 
 func (p *Parser) parseStringLiteral() ast.Expression {
 	return &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}
+}
+
+func (p *Parser) parseUseLiteral() ast.Expression {
+	lit := &ast.UseLiteral{Token: p.curToken}
+
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+
+	v := p.parseExpression(LOWEST)
+	lit.Value = v
+
+	input, err := ioutil.ReadFile(lit.Value.String())
+
+	if err != nil {
+		p.errors = append(p.errors, "Could not read %s", lit.Value.String())
+	}
+
+	subLexer := lexer.New(string(input))
+	subParser := New(subLexer)
+	lit.Body = subParser.ParseProgram()
+
+	return lit
 }
 
 func (p *Parser) peekError(t token.TokenType) {

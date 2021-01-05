@@ -527,6 +527,21 @@ func TestStringLiteral(t *testing.T) {
 	}
 }
 
+func TestUseStatements(t *testing.T) {
+	input := `use("foobar"); x(1);`
+
+	evaluated := testEval(input)
+	v, ok := evaluated.(*object.Integer)
+	if !ok {
+		t.Fatalf("object is not Integer, got %T (%+v)", evaluated, evaluated)
+	}
+
+	if v.Value != 2 {
+		t.Errorf("Integer has wrong value, expected %d, got %d", 2, v.Value)
+	}
+
+}
+
 func testEval(input string) object.Object {
 	l := lexer.New(input)
 	p := parser.New(l)

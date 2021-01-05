@@ -873,6 +873,41 @@ func TestStringLiteralExpression(t *testing.T) {
 	}
 }
 
+func TestUseLiteralExpression(t *testing.T) {
+	input := `use("foobar")`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] not *ast.ExpressionStatement, got %T", program.Statements[0])
+	}
+
+	literal, ok := stmt.Expression.(*ast.UseLiteral)
+	if !ok {
+		t.Fatalf("literal not *ast.UseLiteral, got %T", stmt)
+	}
+
+	value, ok := literal.Value.(*ast.StringLiteral)
+	if !ok {
+		t.Fatalf("literal.Value not *ast.StringLiteral, got %T", stmt)
+	}
+
+	if value.Value != "foobar" {
+		t.Errorf("import.Value not %q, got %q", "foobar", value.Value)
+	}
+
+	if literal.Body == nil {
+		t.Errorf("literal.Body is nil")
+	}
+
+	if len(literal.Body.Statements) != 1 {
+		t.Errorf("literal.Body.Statements wrong, expected %d statements, go %d", 1, len(literal.Body.Statements))
+	}
+}
+
 func testBooleanLiteral(t *testing.T, exp ast.Expression, value bool) bool {
 	bo, ok := exp.(*ast.Boolean)
 	if !ok {
