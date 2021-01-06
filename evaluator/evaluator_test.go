@@ -326,6 +326,72 @@ func TestEvalIntegerExpression(t *testing.T) {
 	}
 }
 
+func TestOpenBuiltin(t *testing.T) {
+	input := `open("foobar")`
+	evaluated := testEval(input)
+	f, ok := evaluated.(*object.File)
+
+	if !ok {
+		t.Fatalf("object is not File, got %T (%+v)", evaluated, evaluated)
+	}
+
+	if f.Filename != "foobar" {
+		t.Errorf("f.Filename wromg, expected %s, got %s", "foobar", f.Filename)
+	}
+
+	if f.Handle == nil {
+		t.Errorf("f.Handle is nil")
+	}
+
+	if f.Reader == nil {
+		t.Errorf("f.Reader is nil")
+	}
+}
+
+func TestReadBuiltin(t *testing.T) {
+	input := `let f = open("foobar");read(f);`
+	evaluated := testEval(input)
+	line, ok := evaluated.(*object.String)
+
+	if !ok {
+		t.Fatalf("object is not String, got %T (%+v)", evaluated, evaluated)
+	}
+
+	expected := "let x = fn(y){y+1}\n"
+
+	if line.Value != expected {
+		t.Errorf("line.Value wrong, expected <%s>, got <%s>", expected, line.Value)
+	}
+}
+
+func TestLinesBuiltin(t *testing.T) {
+	input := `let f = open("baz");lines(f);`
+	evaluated := testEval(input)
+	arr, ok := evaluated.(*object.Array)
+
+	if !ok {
+		t.Fatalf("object is not Array, got %T (%+v)", evaluated, evaluated)
+	}
+
+	if len(arr.Elements) != 3 {
+		t.Errorf("Number of lines wrong, expected %d, got %d, %+v", 3, len(arr.Elements), arr.Elements)
+	}
+}
+
+func TestCloseBuiltin(t *testing.T) {
+	input := `let f = open("foobar");close(f);`
+	evaluated := testEval(input)
+	result, ok := evaluated.(*object.Boolean)
+
+	if !ok {
+		t.Fatalf("object is not Boolean, got %T (%+v)", evaluated, evaluated)
+	}
+
+	if !result.Value {
+		t.Errorf("result.Value wrong, expected %t, got %t", true, result.Value)
+	}
+}
+
 func TestFunctionApplication(t *testing.T) {
 	tests := []struct {
 		input    string

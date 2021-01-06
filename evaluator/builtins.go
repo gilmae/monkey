@@ -129,4 +129,48 @@ var builtins = map[string]*object.Builtin{
 			return NULL
 		},
 	},
+	"open": &object.Builtin{
+		Fn: func(args ...object.Object) object.Object {
+			if args[0].Type() != object.STRING_OBJ {
+				return newError("argument to `push` must be STRING, got %s", args[0].Type())
+			}
+
+			filename := args[0].(*object.String)
+			f := &object.File{Filename: filename.Value}
+
+			f.Open()
+
+			return f
+		},
+	},
+	"read": &object.Builtin{
+		Fn: func(args ...object.Object) object.Object {
+			if args[0].Type() != object.FILE_OBJ {
+				return newError("argument to `push` must be FILE, got %s", args[0].Type())
+			}
+
+			f := args[0].(*object.File)
+			return f.Read()
+		},
+	},
+	"lines": &object.Builtin{
+		Fn: func(args ...object.Object) object.Object {
+			if args[0].Type() != object.FILE_OBJ {
+				return newError("argument to `push` must be FILE, got %s", args[0].Type())
+			}
+
+			f := args[0].(*object.File)
+			return f.ReadAll()
+		},
+	},
+	"close": &object.Builtin{
+		Fn: func(args ...object.Object) object.Object {
+			if args[0].Type() != object.FILE_OBJ {
+				return newError("argument to `push` must be FILE, got %s", args[0].Type())
+			}
+
+			f := args[0].(*object.File)
+			return f.Close()
+		},
+	},
 }

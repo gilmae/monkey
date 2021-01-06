@@ -22,6 +22,7 @@ const (
 	BUILTIN_OBJ      = "BUILTIN"
 	ARRAY_OBJ        = "ARRAY"
 	HASH_OBJ         = "HASH"
+	FILE_OBJ         = "FILE"
 )
 
 type Object interface {
