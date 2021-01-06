@@ -99,6 +99,31 @@ var builtins = map[string]*object.Builtin{
 			}
 		},
 	},
+	"init": &object.Builtin{
+		Fn: func(args ...object.Object) object.Object {
+			if len(args) != 1 {
+				return newError("wrong number of arguments. got=%d, want=%d",
+					len(args),
+					1)
+			}
+
+			switch arg := args[0].(type) {
+			case *object.String:
+				if len(arg.Value) > 0 {
+					return &object.String{Value: arg.Value[0 : len(arg.Value)-1]}
+				}
+				return NULL
+			case *object.Array:
+				if len(arg.Elements) > 0 {
+					return &object.Array{Elements: arg.Elements[0 : len(arg.Elements)-1]}
+				}
+				return NULL
+
+			default:
+				return newError("argument to `init` not supported, got %s", args[0].Type())
+			}
+		},
+	},
 	"push": &object.Builtin{
 		Fn: func(args ...object.Object) object.Object {
 			if len(args) != 2 {
