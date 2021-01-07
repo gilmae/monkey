@@ -3,6 +3,7 @@ package evaluator
 import (
 	"fmt"
 	"monkey/object"
+	"strconv"
 )
 
 var builtins = map[string]*object.Builtin{
@@ -220,6 +221,22 @@ var builtins = map[string]*object.Builtin{
 			arr.Elements[idx.Value] = args[2]
 
 			return arr
+		},
+	},
+	"int": &object.Builtin{
+		Fn: func(args ...object.Object) object.Object {
+			if args[0].Type() != object.STRING_OBJ {
+				return newError("argument to `push` must be STRING, got %s", args[0].Type())
+			}
+
+			s := args[0].(*object.String)
+			i, err := strconv.ParseInt(s.Value, 10, 64)
+			if err != nil {
+				return newError("string is not an int, got %s", s.Value)
+			}
+
+			return &object.Integer{Value: i}
+
 		},
 	},
 }
