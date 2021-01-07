@@ -198,4 +198,28 @@ var builtins = map[string]*object.Builtin{
 			return f.Close()
 		},
 	},
+	"set": &object.Builtin{
+		Fn: func(args ...object.Object) object.Object {
+			if len(args) != 3 {
+				return newError("wrong number of arguments. got=%d, want=%d",
+					len(args),
+					1)
+			}
+
+			if args[0].Type() != object.ARRAY_OBJ {
+				return newError("argument to `set` must be ARRAY, got %s", args[0].Type())
+			}
+
+			if args[1].Type() != object.INTEGER_OBJ {
+				return newError("index `set` into ARRAY must be INTEGER, got %s", args[0].Type())
+			}
+
+			arr := args[0].(*object.Array)
+			idx := args[1].(*object.Integer)
+
+			arr.Elements[idx.Value] = args[2]
+
+			return arr
+		},
+	},
 }
