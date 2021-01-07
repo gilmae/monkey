@@ -7,6 +7,17 @@ import (
 	"testing"
 )
 
+func TestAssignStatement(t *testing.T) {
+	input := []string{"let z = 10; let a = 3; y = a;"}
+
+	for _, txt := range input {
+		l := lexer.New(txt)
+		p := New(l)
+		_ = p.ParseProgram()
+		checkParserErrors(t, p)
+	}
+}
+
 func TestBooleanExpression(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -1049,5 +1060,6 @@ func checkParserErrors(t *testing.T, p *Parser) {
 	for _, msg := range errors {
 		t.Errorf("Parser error: %q", msg)
 	}
+
 	t.FailNow()
 }

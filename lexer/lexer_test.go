@@ -30,7 +30,8 @@ func TestNextToken(t *testing.T) {
 	"foo bar"
 	[1,2]
 	{"foo":"bar"}
-	use("foobar")`
+	use("foobar")
+	foo = 1+2`
 
 	tests := []struct {
 		expectedType    token.TokenType
@@ -130,6 +131,11 @@ func TestNextToken(t *testing.T) {
 		{token.LPAREN, "("},
 		{token.STRING, "foobar"},
 		{token.RPAREN, ")"},
+		{token.IDENT, "foo"},
+		{token.ASSIGN, "="},
+		{token.INT, "1"},
+		{token.PLUS, "+"},
+		{token.INT, "2"},
 		{token.EOF, ""},
 	}
 

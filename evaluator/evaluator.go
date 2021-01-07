@@ -83,6 +83,14 @@ func Eval(node ast.Node, env *object.Environment) object.Object {
 		}
 
 		env.Set(node.Name.Value, val)
+	case *ast.AssignStatement:
+		val := Eval(node.Value, env)
+
+		if isError(val) {
+			return val
+		}
+
+		env.Set(node.Name.Value, val)
 	case *ast.PrefixExpression:
 		right := Eval(node.Right, env)
 		if isError(right) {

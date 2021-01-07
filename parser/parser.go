@@ -12,6 +12,7 @@ import (
 const (
 	_ int = iota
 	LOWEST
+	ASSIGN      // =
 	EQUALS      // ==
 	LESSGREATER // < or >
 	SUM         // +
@@ -22,6 +23,7 @@ const (
 )
 
 var precedences = map[token.TokenType]int{
+	token.ASSIGN:   ASSIGN,
 	token.EQ:       EQUALS,
 	token.NOTEQ:    EQUALS,
 	token.LT:       LESSGREATER,
@@ -87,6 +89,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.GTE, p.parseInfixExpression)
 	p.registerInfix(token.LPAREN, p.parseCallExpression)
 	p.registerInfix(token.LBRACKET, p.parseIndexExpression)
+	p.registerInfix(token.ASSIGN, p.parseAssignExpression)
 
 	return p
 }
@@ -139,6 +142,22 @@ func (p *Parser) nextToken() {
 func (p *Parser) noPrefixParseFnError(t token.TokenType) {
 	msg := fmt.Sprintf("no prefix parse function for %s found", t)
 	p.errors = append(p.errors, msg)
+}
+
+func (p *Parser) parseAssignExpression(left ast.Expression) ast.Expression {
+	stmt := &ast.AssignStatement{Token: p.curToken}
+
+	if name, ok := left.(*ast.Identifier); ok {
+		stmt.Name = name
+	} else {
+		msg := fmt.Sprintf("expected assign token to be IDENT, got %s instead", name.TokenLiteral())
+		p.errors = append(p.errors, msg)
+	}
+	p.nextToken()
+
+	stmt.Value = p.parseExpression(LOWEST)
+
+	return stmt
 }
 
 func (p *Parser) parseBlockStatement() *ast.BlockStatement {
