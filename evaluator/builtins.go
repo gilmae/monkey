@@ -3,6 +3,7 @@ package evaluator
 import (
 	"fmt"
 	"monkey/object"
+	"os"
 	"strconv"
 )
 
@@ -237,6 +238,12 @@ var builtins = map[string]*object.Builtin{
 
 			return &object.Integer{Value: i}
 
+		},
+	},
+	"exit": &object.Builtin{
+		Fn: func(args ...object.Object) object.Object {
+			os.Exit(0)
+			return nil
 		},
 	},
 }
