@@ -57,6 +57,10 @@ func execute(input string) int {
 		os.Exit(1)
 	}
 
-	evaluator.Eval(program, env)
+	evaluated := evaluator.Eval(program, env)
+
+	if evaluated != nil && evaluated.Type() != object.NULL_OBJ {
+		fmt.Printf("%s\n", evaluated.Inspect())
+	}
 	return 0
 }
