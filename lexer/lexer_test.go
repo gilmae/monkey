@@ -31,7 +31,8 @@ func TestNextToken(t *testing.T) {
 	[1,2]
 	{"foo":"bar"}
 	use("foobar")
-	foo = 1+2`
+	foo = 1+2
+	# let a = 10`
 
 	tests := []struct {
 		expectedType    token.TokenType

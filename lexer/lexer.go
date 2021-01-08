@@ -23,6 +23,12 @@ func (l *Lexer) NextToken() token.Token {
 
 	l.skipWhitespace()
 	switch l.ch {
+	case '#':
+		// Comment, skip
+		for l.ch != '\n' && l.ch != 0 {
+			l.readChar()
+		}
+		return (l.NextToken())
 	case '"':
 		tok.Type = token.STRING
 		tok.Literal = l.readString()
@@ -35,6 +41,7 @@ func (l *Lexer) NextToken() token.Token {
 		} else {
 			tok = newToken(token.ASSIGN, l.ch)
 		}
+
 	case ';':
 		tok = newToken(token.SEMICOLON, l.ch)
 	case ':':
