@@ -8,6 +8,7 @@ type Lexer struct {
 	position     int
 	readPosition int
 	ch           byte
+	line         int
 }
 
 // New initialises a Lexer
@@ -15,6 +16,10 @@ func New(input string) *Lexer {
 	l := &Lexer{input: input}
 	l.readChar()
 	return l
+}
+
+func (l *Lexer) Line() int {
+	return l.line
 }
 
 // NextToken reads the next token from the input
@@ -144,6 +149,9 @@ func (l *Lexer) readChar() {
 		l.ch = l.input[l.readPosition]
 	}
 	l.position = l.readPosition
+	if l.ch == '\n' {
+		l.line += 1
+	}
 	l.readPosition++
 }
 

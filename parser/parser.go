@@ -140,7 +140,7 @@ func (p *Parser) nextToken() {
 }
 
 func (p *Parser) noPrefixParseFnError(t token.TokenType) {
-	msg := fmt.Sprintf("no prefix parse function for %s found", t)
+	msg := fmt.Sprintf("Line %d: no prefix parse function for %s found on line %d", p.l.Line(), t)
 	p.errors = append(p.errors, msg)
 }
 
@@ -150,7 +150,7 @@ func (p *Parser) parseAssignExpression(left ast.Expression) ast.Expression {
 	if name, ok := left.(*ast.Identifier); ok {
 		stmt.Name = name
 	} else {
-		msg := fmt.Sprintf("expected assign token to be IDENT, got %s instead", name.TokenLiteral())
+		msg := fmt.Sprintf("Line %d: expected assign token to be IDENT, got %s instead.", p.l.Line(), name.TokenLiteral())
 		p.errors = append(p.errors, msg)
 	}
 	p.nextToken()
@@ -412,7 +412,7 @@ func (p *Parser) parseIntegerLiteral() ast.Expression {
 	value, err := strconv.ParseInt(p.curToken.Literal, 0, 64)
 
 	if err != nil {
-		msg := fmt.Sprintf("couldf not parse %q as integer", p.curToken.Literal)
+		msg := fmt.Sprintf("Line %d: couldf not parse %q as integer", p.l.Line(), p.curToken.Literal)
 		p.errors = append(p.errors, msg)
 		return nil
 	}
@@ -499,7 +499,7 @@ func (p *Parser) parseUseLiteral() ast.Expression {
 	input, err := ioutil.ReadFile(lit.Value.String())
 
 	if err != nil {
-		p.errors = append(p.errors, "Could not read %s", lit.Value.String())
+		p.errors = append(p.errors, fmt.Sprintf("Line %d: Could not read %s", p.l.Line(), lit.Value.String()))
 	}
 
 	subLexer := lexer.New(string(input))
@@ -510,7 +510,8 @@ func (p *Parser) parseUseLiteral() ast.Expression {
 }
 
 func (p *Parser) peekError(t token.TokenType) {
-	msg := fmt.Sprintf("expected next token to be %s, got %s instead",
+	msg := fmt.Sprintf("Line %d: expected next token to be %s, got %s instead",
+		p.l.Line(),
 		t,
 		p.peekToken.Type)
 	p.errors = append(p.errors, msg)
