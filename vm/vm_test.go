@@ -19,7 +19,7 @@ func TestIntegerArithmetic(t *testing.T) {
 	tests := []vmTestCase{
 		{"1", 1},
 		{"2", 2},
-		{"1+2", 2}, // TODO - Should be 3 when an Add optcode is implemented
+		{"1+2", 3}, // TODO - Should be 3 when an Add optcode is implemented
 	}
 
 	runVmTests(t, tests)
