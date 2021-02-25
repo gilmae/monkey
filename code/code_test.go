@@ -37,12 +37,18 @@ func TestInstructionStrings(t *testing.T) {
 		Make(OpConstant, 2),
 		Make(OpConstant, 65535),
 		Make(OpPop),
+		Make(OpSub),
+		Make(OpMul),
+		Make(OpDiv),
 	}
 
 	expected := `0000 OpAdd
 0001 OpConstant 2
 0004 OpConstant 65535
 0007 OpPop
+0008 OpSub
+0009 OpMul
+0010 OpDiv
 `
 
 	concatted := Instructions{}
@@ -51,7 +57,7 @@ func TestInstructionStrings(t *testing.T) {
 	}
 
 	if concatted.String() != expected {
-		t.Errorf("instructions wrongly formatted.\n\twant:%q\n\tgot:%q", expected, concatted.String())
+		t.Errorf("instructions wrongly formatted.\n\twant:%q\n\tgot: %q", expected, concatted.String())
 	}
 }
 
