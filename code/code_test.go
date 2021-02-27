@@ -46,6 +46,8 @@ func TestInstructionStrings(t *testing.T) {
 		Make(OpNotEqual),
 		Make(OpGreaterThan),
 		Make(OpGreaterThanOrEqual),
+		Make(OpMinus),
+		Make(OpBang),
 	}
 
 	expected := `0000 OpAdd
@@ -61,6 +63,8 @@ func TestInstructionStrings(t *testing.T) {
 0014 OpNotEqual
 0015 OpGreaterThan
 0016 OpGreaterThanOrEqual
+0017 OpMinus
+0018 OpBang
 `
 
 	concatted := Instructions{}
