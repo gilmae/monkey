@@ -15,6 +15,42 @@ type vmTestCase struct {
 	expected interface{}
 }
 
+func TestBooleanExpression(t *testing.T) {
+	tests := []vmTestCase{
+		{"true", true},
+		{"false", false},
+		{"1<2", true},
+		{"1>2", false},
+		{"1<1", false},
+		{"1>1", false},
+
+		{"1==1", true},
+		{"1!=1", false},
+		{"1==2", false},
+		{"1!=2", true},
+
+		{"true==true", true},
+		{"false==false", true},
+		{"true==false", false},
+		{"true!=false", true},
+		{"false!=true", true},
+
+		{"(1<2) == true", true},
+		{"(1<2) == false", false},
+		{"(1>2) == true", false},
+		{"(1>2) == false", true},
+
+		{"1<=2", true},
+		{"1<=1", true},
+		{"2>=1", true},
+		{"2>=2", true},
+
+		{"2>=3", false},
+		{"1<=0", false},
+	}
+
+	runVmTests(t, tests)
+}
 func TestIntegerArithmetic(t *testing.T) {
 	tests := []vmTestCase{
 		{"1", 1},
@@ -62,6 +98,11 @@ func testExpectedObject(t *testing.T, expected interface{}, actual object.Object
 		if err != nil {
 			t.Errorf("testIntegerObject failed: %s", err)
 		}
+	case bool:
+		err := testBooleanObject(bool(expected), actual)
+		if err != nil {
+			t.Errorf("testBooleanObject failed: %s", err)
+		}
 	}
 }
 
@@ -69,6 +110,20 @@ func parse(input string) *ast.Program {
 	l := lexer.New(input)
 	p := parser.New(l)
 	return p.ParseProgram()
+}
+
+func testBooleanObject(expected bool, actual object.Object) error {
+	result, ok := actual.(*object.Boolean)
+
+	if !ok {
+		return fmt.Errorf("object is not Boolean, got %t (%+v)", actual, actual)
+	}
+
+	if result.Value != expected {
+		return fmt.Errorf("object has wrong value, expected %t, got %t", expected, result.Value)
+	}
+
+	return nil
 }
 
 func testIntegerObject(expected int64, actual object.Object) error {

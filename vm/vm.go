@@ -7,6 +7,9 @@ import (
 	"monkey/object"
 )
 
+var True = &object.Boolean{Value: true}
+var False = &object.Boolean{Value: false}
+
 const StackSize = 2048
 
 type VM struct {
@@ -39,9 +42,23 @@ func (v *VM) Run() error {
 			if err != nil {
 				return err
 			}
-
+		case code.OpTrue:
+			err := v.push(True)
+			if err != nil {
+				return err
+			}
+		case code.OpFalse:
+			err := v.push(False)
+			if err != nil {
+				return err
+			}
 		case code.OpAdd, code.OpSub, code.OpMul, code.OpDiv:
 			err := v.executeBinaryOperation(op)
+			if err != nil {
+				return err
+			}
+		case code.OpGreaterThan, code.OpGreaterThanOrEqual, code.OpEqual, code.OpNotEqual:
+			err := v.executeComparison(op)
 			if err != nil {
 				return err
 			}
@@ -95,6 +112,52 @@ func (v *VM) executeBinaryIntegerOperation(op code.Opcode, left, right object.Ob
 	}
 	return v.push(&object.Integer{Value: result})
 
+}
+
+func (v *VM) executeComparison(op code.Opcode) error {
+	right := v.pop()
+	left := v.pop()
+
+	leftType := left.Type()
+	rightType := right.Type()
+
+	if leftType == object.INTEGER_OBJ && rightType == object.INTEGER_OBJ {
+		return v.executeIntegerComparison(op, left, right)
+	}
+
+	switch op {
+	case code.OpEqual:
+		return v.push(nativeBoolToBooleanObject(right == left))
+	case code.OpNotEqual:
+		return v.push(nativeBoolToBooleanObject(right != left))
+	default:
+		return fmt.Errorf("unknown operator: %d (%s %s)", op, leftType, rightType)
+	}
+}
+
+func (v *VM) executeIntegerComparison(op code.Opcode, left, right object.Object) error {
+	leftValue := left.(*object.Integer).Value
+	rightValue := right.(*object.Integer).Value
+
+	switch op {
+	case code.OpEqual:
+		return v.push(nativeBoolToBooleanObject(leftValue == rightValue))
+	case code.OpNotEqual:
+		return v.push(nativeBoolToBooleanObject(leftValue != rightValue))
+	case code.OpGreaterThan:
+		return v.push(nativeBoolToBooleanObject(leftValue > rightValue))
+	case code.OpGreaterThanOrEqual:
+		return v.push(nativeBoolToBooleanObject(leftValue >= rightValue))
+	default:
+		return fmt.Errorf("unknown operator: %d", op)
+	}
+}
+
+func nativeBoolToBooleanObject(input bool) *object.Boolean {
+	if input {
+		return True
+	}
+	return False
 }
 
 func (v *VM) pop() object.Object {
