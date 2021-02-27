@@ -128,6 +128,58 @@ func TestBooleanExpressions(t *testing.T) {
 	runCompilerTests(t, tests)
 }
 
+func TestConditionals(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `
+			if (true) {10} else {20}; 3333;`,
+			expectedConstants: []interface{}{10, 20, 3333},
+			expectedInstructions: []code.Instructions{
+				// 0000
+				code.Make(code.OpTrue),
+				// 0001
+				code.Make(code.OpJumpNotTruthy, 10),
+				// 0004
+				code.Make(code.OpConstant, 0),
+				// 0007
+				code.Make(code.OpJump, 13),
+				// 0010
+				code.Make(code.OpConstant, 1),
+				// 0013
+				code.Make(code.OpPop),
+				// 0014
+				code.Make(code.OpConstant, 2),
+				// 0017
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input: `
+			if (true) {10}; 3333;`,
+			expectedConstants: []interface{}{10, 3333},
+			expectedInstructions: []code.Instructions{
+				// 0000
+				code.Make(code.OpTrue),
+				// 0001
+				code.Make(code.OpJumpNotTruthy, 10),
+				// 0004
+				code.Make(code.OpConstant, 0),
+				// 0007
+				code.Make(code.OpJump, 11),
+				// 0010
+				code.Make(code.OpNull),
+				// 0011
+				code.Make(code.OpPop),
+				// 0012
+				code.Make(code.OpConstant, 1),
+				// 0015
+				code.Make(code.OpPop),
+			},
+		},
+	}
+	runCompilerTests(t, tests)
+}
+
 func TestIntegerArithmetic(t *testing.T) {
 	tests :=
 		[]compilerTestCase{
@@ -264,26 +316,27 @@ func testIntegerObject(expected int64, actual object.Object) error {
 	}
 
 	if result.Value != expected {
-		return fmt.Errorf("object has wrong valud, got %d, want %d", result.Value, expected)
+		return fmt.Errorf("object has wrong value, got %d, want %d", result.Value, expected)
 	}
 
 	return nil
 }
 
-func testInstructions(expected []code.Instructions,
-	actual code.Instructions) error {
+func testInstructions(
+	expected []code.Instructions,
+	actual code.Instructions,
+) error {
 	concatted := concatInstructions(expected)
 
 	if len(actual) != len(concatted) {
-		return fmt.Errorf("wrong instructions length\n\twant: %q\n\tgot: %q",
-			concatted,
-			actual)
+		return fmt.Errorf("wrong instructions length.\nwant=%q\ngot =%q",
+			concatted, actual)
 	}
 
 	for i, ins := range concatted {
 		if actual[i] != ins {
-			return fmt.Errorf("wrong instruction at %d.\n\twant=%q\n\tgot=%q", i, concatted[i], ins)
-
+			return fmt.Errorf("wrong instruction at %d.\nwant=%q\ngot =%q",
+				i, concatted, actual)
 		}
 	}
 

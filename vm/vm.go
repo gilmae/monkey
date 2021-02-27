@@ -9,6 +9,7 @@ import (
 
 var True = &object.Boolean{Value: true}
 var False = &object.Boolean{Value: false}
+var Null = &object.Null{}
 
 const StackSize = 2048
 
@@ -74,6 +75,21 @@ func (v *VM) Run() error {
 			}
 		case code.OpPop:
 			v.pop()
+		case code.OpJump:
+			pos := int(code.ReadUint16(v.instructions[ip+1:]))
+			ip = pos - 1
+		case code.OpJumpNotTruthy:
+			pos := int(code.ReadUint16(v.instructions[ip+1:]))
+			ip += 2
+			condition := v.pop()
+			if !isTruthy(condition) {
+				ip = pos - 1
+			}
+		case code.OpNull:
+			err := v.push(Null)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -92,10 +108,13 @@ func (v *VM) StackTop() object.Object {
 
 func (v *VM) executeBangOperator(op code.Opcode) error {
 	operand := v.pop()
+
 	switch operand {
 	case True:
 		return v.push(False)
 	case False:
+		return v.push(True)
+	case Null:
 		return v.push(True)
 	default:
 		return v.push(False)
@@ -183,6 +202,17 @@ func (v *VM) executeMinusOperator(op code.Opcode) error {
 
 	value := operand.(*object.Integer).Value
 	return v.push(&object.Integer{Value: -value})
+}
+
+func isTruthy(obj object.Object) bool {
+	switch obj := obj.(type) {
+	case *object.Boolean:
+		return obj.Value
+	case *object.Null:
+		return false
+	default:
+		return true
+	}
 }
 
 func nativeBoolToBooleanObject(input bool) *object.Boolean {
