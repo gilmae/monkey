@@ -122,6 +122,21 @@ func (v *VM) Run() error {
 			if err != nil {
 				return err
 			}
+		case code.OpHash:
+			numElements := int(code.ReadUint16(v.instructions[ip+1:]))
+			ip += 2
+
+			hash, err := v.buildHash(v.sp-numElements, v.sp)
+			if err != nil {
+				return err
+			}
+
+			v.sp = v.sp - numElements
+
+			err = v.push(hash)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -146,6 +161,25 @@ func (v *VM) buildArray(startIndex, endIndex int) object.Object {
 	}
 
 	return &object.Array{Elements: elements}
+}
+
+func (v *VM) buildHash(startIndex, endIndex int) (object.Object, error) {
+	hashedPairs := make(map[object.HashKey]object.HashPair)
+
+	for i := startIndex; i < endIndex; i += 2 {
+		key := v.stack[i]
+		value := v.stack[i+1]
+
+		pair := object.HashPair{Key: key, Value: value}
+		hashKey, ok := key.(object.Hashable)
+		if !ok {
+			return nil, fmt.Errorf("unusable as hash key: %s", key.Type())
+		}
+
+		hashedPairs[hashKey.HashKey()] = pair
+	}
+
+	return &object.Hash{Pairs: hashedPairs}, nil
 }
 
 func (v *VM) executeBangOperator(op code.Opcode) error {
