@@ -53,6 +53,7 @@ func TestInstructionStrings(t *testing.T) {
 		Make(OpNull),
 		Make(OpGetGlobal, 1),
 		Make(OpSetGlobal, 1),
+		Make(OpArray, 10),
 	}
 
 	expected := `0000 OpAdd
@@ -75,6 +76,7 @@ func TestInstructionStrings(t *testing.T) {
 0025 OpNull
 0026 OpGetGlobal 1
 0029 OpSetGlobal 1
+0032 OpArray 10
 `
 
 	concatted := Instructions{}

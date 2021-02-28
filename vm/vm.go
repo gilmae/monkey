@@ -111,6 +111,17 @@ func (v *VM) Run() error {
 			if err != nil {
 				return err
 			}
+		case code.OpArray:
+			numElements := int(code.ReadUint16(v.instructions[ip+1:]))
+			ip += 2
+
+			array := v.buildArray(v.sp-numElements, v.sp)
+			v.sp = v.sp - numElements
+
+			err := v.push(array)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -125,6 +136,16 @@ func (v *VM) StackTop() object.Object {
 		return nil
 	}
 	return v.stack[v.sp-1]
+}
+
+func (v *VM) buildArray(startIndex, endIndex int) object.Object {
+	elements := make([]object.Object, endIndex-startIndex)
+
+	for i := startIndex; i < endIndex; i++ {
+		elements[i-startIndex] = v.stack[i]
+	}
+
+	return &object.Array{Elements: elements}
 }
 
 func (v *VM) executeBangOperator(op code.Opcode) error {
