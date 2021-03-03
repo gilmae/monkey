@@ -1,10 +1,11 @@
 package evaluator
 
 import (
-	"monkey/lexer"
-	"monkey/object"
-	"monkey/parser"
 	"testing"
+
+	"github.com/gilmae/monkey/lexer"
+	"github.com/gilmae/monkey/object"
+	"github.com/gilmae/monkey/parser"
 )
 
 func TestArrayLiterals(t *testing.T) {

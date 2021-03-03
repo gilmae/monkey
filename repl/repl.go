@@ -4,12 +4,13 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"monkey/compiler"
-	"monkey/lexer"
-	"monkey/parser"
-	"monkey/vm"
 
-	"monkey/object"
+	"github.com/gilmae/monkey/compiler"
+	"github.com/gilmae/monkey/lexer"
+	"github.com/gilmae/monkey/parser"
+	"github.com/gilmae/monkey/vm"
+
+	"github.com/gilmae/monkey/object"
 )
 
 const PROMPT = ">> "

@@ -6,11 +6,11 @@ import (
 	"io/ioutil"
 	"os"
 
-	"monkey/evaluator"
-	"monkey/lexer"
-	"monkey/object"
-	"monkey/parser"
-	"monkey/repl"
+	"github.com/gilmae/monkey/evaluator"
+	"github.com/gilmae/monkey/lexer"
+	"github.com/gilmae/monkey/object"
+	"github.com/gilmae/monkey/parser"
+	"github.com/gilmae/monkey/repl"
 )
 
 const version = "1.0.1"

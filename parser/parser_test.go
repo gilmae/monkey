@@ -2,9 +2,10 @@ package parser
 
 import (
 	"fmt"
-	"monkey/ast"
-	"monkey/lexer"
 	"testing"
+
+	"github.com/gilmae/monkey/ast"
+	"github.com/gilmae/monkey/lexer"
 )
 
 func TestAssignStatement(t *testing.T) {

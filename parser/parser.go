@@ -3,10 +3,11 @@ package parser
 import (
 	"fmt"
 	"io/ioutil"
-	"monkey/ast"
-	"monkey/lexer"
-	"monkey/token"
 	"strconv"
+
+	"github.com/gilmae/monkey/ast"
+	"github.com/gilmae/monkey/lexer"
+	"github.com/gilmae/monkey/token"
 )
 
 const (
