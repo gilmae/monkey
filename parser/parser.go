@@ -141,7 +141,7 @@ func (p *Parser) nextToken() {
 }
 
 func (p *Parser) noPrefixParseFnError(t token.TokenType) {
-	msg := fmt.Sprintf("Line %d: no prefix parse function for %s found on line %d", p.l.Line(), t)
+	msg := fmt.Sprintf("Line %d: no prefix parse function for %s found", p.l.Line(), t)
 	p.errors = append(p.errors, msg)
 }
 
