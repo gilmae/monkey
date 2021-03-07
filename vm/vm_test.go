@@ -70,6 +70,67 @@ func TestBooleanExpression(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func TestBuiltinFunctions(t *testing.T) {
+	tests := []vmTestCase{
+		{`len("")`, 0},
+		{`len("four")`, 4},
+		{`len("hello world")`, 11},
+		{
+			`len(1)`,
+			&object.Error{
+				Message: "argument to `len` not supported, got INTEGER",
+			},
+		},
+		{
+			`len("one","two")`,
+			&object.Error{
+				Message: "wrong number of arguments. got=2, want=1",
+			},
+		},
+		{`len([])`, 0},
+		{`len([1,2,3])`, 3},
+		{`puts("hello","world")`, Null},
+		{`first([1,2,3])`, 1},
+		{`first([])`, Null},
+		{`first("")`, Null},
+		{`first("Zed")`, "Z"},
+		{
+			`first(1)`,
+			&object.Error{Message: "argument to `first` not supported, got INTEGER"},
+		},
+		{`last([1,2,3])`, 3},
+		{`last([])`, Null},
+		{`last("")`, Null},
+		{`last("Zed")`, "d"},
+		{
+			`last(1)`,
+			&object.Error{Message: "argument to `last` not supported, got INTEGER"},
+		},
+		{`rest([1,2,3])`, []int{2, 3}},
+		{`rest([])`, Null},
+		{`rest("")`, Null},
+		{`rest("Zed")`, "ed"},
+		{
+			`rest(1)`,
+			&object.Error{Message: "argument to `rest` not supported, got INTEGER"},
+		},
+		{`init([1,2,3])`, []int{1, 2}},
+		{`init([])`, Null},
+		{`init("")`, Null},
+		{`init("Zed")`, "Ze"},
+		{
+			`init(1)`,
+			&object.Error{Message: "argument to `init` not supported, got INTEGER"},
+		},
+		{`push([],1)`, []int{1}},
+		{
+			`push(1,1)`,
+			&object.Error{Message: "argument to `push` must be ARRAY, got INTEGER"},
+		},
+	}
+	runVmTests(t, tests)
+}
+
 func TestCallingFunctionsWithoutArguments(t *testing.T) {
 	tests := []vmTestCase{
 		{
@@ -505,6 +566,16 @@ func testExpectedObject(t *testing.T, expected interface{}, actual object.Object
 	case *object.Null:
 		if actual != Null {
 			t.Errorf("object is not Null: %T (%+v)", actual, actual)
+		}
+	case *object.Error:
+		errObj, ok := actual.(*object.Error)
+		if !ok {
+			t.Errorf("object is not Error: %T (%+v)", actual, actual)
+			return
+		}
+
+		if errObj.Message != expected.Message {
+			t.Errorf("wrong error messaged, expected=%q, got=%q", expected.Message, errObj.Message)
 		}
 	}
 }

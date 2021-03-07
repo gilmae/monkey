@@ -172,7 +172,7 @@ func (v *VM) Run() error {
 			numArgs := code.ReadUint8((ins[ip+1:]))
 			v.currentFrame().ip += 1
 
-			err := v.callFunction(int(numArgs))
+			err := v.executeCall(int(numArgs))
 
 			if err != nil {
 				return err
@@ -207,6 +207,15 @@ func (v *VM) Run() error {
 			frame := v.currentFrame()
 
 			err := v.push(v.stack[frame.basePointer+int(localIndex)])
+			if err != nil {
+				return err
+			}
+		case code.OpGetBuiltin:
+			builtinIndex := code.ReadUint8(ins[ip+1:])
+			v.currentFrame().ip += 1
+			definition := object.Builtins[builtinIndex]
+
+			err := v.push(definition.Builtin)
 			if err != nil {
 				return err
 			}
@@ -255,12 +264,7 @@ func (v *VM) buildHash(startIndex, endIndex int) (object.Object, error) {
 	return &object.Hash{Pairs: hashedPairs}, nil
 }
 
-func (v *VM) callFunction(numArgs int) error {
-	fn, ok := v.stack[v.sp-1-int(numArgs)].(*object.CompiledFunction)
-	if !ok {
-		return fmt.Errorf("calling non-function")
-	}
-
+func (v *VM) callFunction(fn *object.CompiledFunction, numArgs int) error {
 	if numArgs != fn.NumParameters {
 		return fmt.Errorf("wrong number of arguments: want=%d, got=%d", fn.NumParameters, numArgs)
 	}
@@ -268,6 +272,21 @@ func (v *VM) callFunction(numArgs int) error {
 	frame := NewFrame(fn, v.sp-numArgs)
 	v.pushFrame(frame)
 	v.sp = frame.basePointer + fn.NumLocals
+
+	return nil
+}
+
+func (v *VM) callBuiltin(fn *object.Builtin, numArgs int) error {
+	args := v.stack[v.sp-numArgs : v.sp]
+	result := fn.Fn(args...)
+
+	v.sp = v.sp - numArgs - 1
+
+	if result != nil {
+		v.push(result)
+	} else {
+		v.push(Null)
+	}
 
 	return nil
 }
@@ -337,6 +356,18 @@ func (v *VM) executeBinaryStringOperation(op code.Opcode, left, right object.Obj
 	}
 	return v.push(&object.String{Value: result})
 
+}
+
+func (v *VM) executeCall(numArgs int) error {
+	callee := v.stack[v.sp-1-numArgs]
+	switch callee := callee.(type) {
+	case *object.CompiledFunction:
+		return v.callFunction(callee, numArgs)
+	case *object.Builtin:
+		return v.callBuiltin(callee, numArgs)
+	default:
+		return fmt.Errorf("calling non-function and non-built-in")
+	}
 }
 
 func (v *VM) executeComparison(op code.Opcode) error {
