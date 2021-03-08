@@ -222,11 +222,26 @@ func (v *VM) Run() error {
 			}
 		case code.OpClosure:
 			constIndex := code.ReadUint16(ins[ip+1:])
-			_ = code.ReadUint8(ins[ip+3:])
+			numFree := code.ReadUint8(ins[ip+3:])
 			v.currentFrame().ip += 3
-			err := v.pushClosure(int(constIndex))
+			err := v.pushClosure(int(constIndex), int(numFree))
 			if err != nil {
 				return nil
+			}
+		case code.OpGetFree:
+			freeIndex := code.ReadUint8(ins[ip+1:])
+			v.currentFrame().ip += 1
+
+			currentClosure := v.currentFrame().cl
+			err := v.push(currentClosure.Free[freeIndex])
+			if err != nil {
+				return err
+			}
+		case code.OpCurrentClosure:
+			currentClosure := v.currentFrame().cl
+			err := v.push(currentClosure)
+			if err != nil {
+				return err
 			}
 		}
 	}
@@ -284,18 +299,6 @@ func (v *VM) callClosure(cl *object.Closure, numArgs int) error {
 
 	return nil
 }
-
-// func (v *VM) callFunction(fn *object.CompiledFunction, numArgs int) error {
-// 	if numArgs != fn.NumParameters {
-// 		return fmt.Errorf("wrong number of arguments: want=%d, got=%d", fn.NumParameters, numArgs)
-// 	}
-
-// 	frame := NewFrame(fn, v.sp-numArgs)
-// 	v.pushFrame(frame)
-// 	v.sp = frame.basePointer + fn.NumLocals
-
-// 	return nil
-// }
 
 func (v *VM) callBuiltin(fn *object.Builtin, numArgs int) error {
 	args := v.stack[v.sp-numArgs : v.sp]
@@ -384,8 +387,6 @@ func (v *VM) executeCall(numArgs int) error {
 	switch callee := callee.(type) {
 	case *object.Closure:
 		return v.callClosure(callee, numArgs)
-	// case *object.CompiledFunction:
-	// 	return v.callFunction(callee, numArgs)
 	case *object.Builtin:
 		return v.callBuiltin(callee, numArgs)
 	default:
@@ -515,14 +516,19 @@ func (v *VM) push(obj object.Object) error {
 	return nil
 }
 
-func (v *VM) pushClosure(constIndex int) error {
+func (v *VM) pushClosure(constIndex int, numFree int) error {
 	constant := v.constants[constIndex]
 	function, ok := constant.(*object.CompiledFunction)
 	if !ok {
 		return fmt.Errorf("Not a function: %+v", constant)
 	}
 
-	closure := &object.Closure{Fn: function}
+	free := make([]object.Object, numFree)
+	for i := 0; i < numFree; i++ {
+		free[i] = v.stack[v.sp-numFree+i]
+	}
+	v.sp = v.sp - numFree
+	closure := &object.Closure{Fn: function, Free: free}
 	return v.push(closure)
 }
 
