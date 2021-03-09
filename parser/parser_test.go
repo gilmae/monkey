@@ -772,6 +772,34 @@ func TestParsingHashLiteralsWithExpressions(t *testing.T) {
 	}
 }
 
+func TestParsingHashLiteralsWithFunctions(t *testing.T) {
+	input := `{"one": fn(){1;}, "two": fn(){2;}, "three": fn(){15 / 5}}`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	stmt := program.Statements[0].(*ast.ExpressionStatement)
+	hash, ok := stmt.Expression.(*ast.HashLiteral)
+	if !ok {
+		t.Fatalf("exp is not ast.HashLiteral. got=%T", stmt.Expression)
+	}
+
+	if len(hash.Pairs) != 3 {
+		t.Errorf("hash.Pairs has wrong length. got=%d", len(hash.Pairs))
+	}
+
+	for _, value := range hash.Pairs {
+
+		_, ok := value.(*ast.FunctionLiteral)
+		if !ok {
+			t.Fatalf("value is not *ast.FunctionLiteral, got %T", value)
+		}
+
+	}
+}
+
 func TestParsingIndexExpression(t *testing.T) {
 	input := "myArr[1+1]"
 
