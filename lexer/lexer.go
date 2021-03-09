@@ -1,6 +1,6 @@
 package lexer
 
-import "monkey/token"
+import "github.com/gilmae/monkey/token"
 
 // Lexer represents the internal state of a lexer parsing through input
 type Lexer struct {

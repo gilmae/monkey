@@ -3,10 +3,11 @@ package parser
 import (
 	"fmt"
 	"io/ioutil"
-	"monkey/ast"
-	"monkey/lexer"
-	"monkey/token"
 	"strconv"
+
+	"github.com/gilmae/monkey/ast"
+	"github.com/gilmae/monkey/lexer"
+	"github.com/gilmae/monkey/token"
 )
 
 const (
@@ -140,7 +141,7 @@ func (p *Parser) nextToken() {
 }
 
 func (p *Parser) noPrefixParseFnError(t token.TokenType) {
-	msg := fmt.Sprintf("Line %d: no prefix parse function for %s found on line %d", p.l.Line(), t)
+	msg := fmt.Sprintf("Line %d: no prefix parse function for %s found", p.l.Line(), t)
 	p.errors = append(p.errors, msg)
 }
 
@@ -438,6 +439,10 @@ func (p *Parser) parseLetStatement() *ast.LetStatement {
 	p.nextToken()
 	stmt.Value = p.parseExpression(LOWEST)
 
+	if fl, ok := stmt.Value.(*ast.FunctionLiteral); ok {
+		fl.Name = stmt.Name.Value
+	}
+
 	for !p.curTokenIs(token.SEMICOLON) && !p.curTokenIs(token.EOF) {
 		p.nextToken()
 	}
@@ -464,7 +469,7 @@ func (p *Parser) parseReturnStatement() *ast.ReturnStatement {
 	p.nextToken()
 	stmt.ReturnValue = p.parseExpression(LOWEST)
 
-	for !p.curTokenIs(token.SEMICOLON) {
+	for p.peekTokenIs(token.SEMICOLON) {
 		p.nextToken()
 	}
 

@@ -2,9 +2,10 @@ package parser
 
 import (
 	"fmt"
-	"monkey/ast"
-	"monkey/lexer"
 	"testing"
+
+	"github.com/gilmae/monkey/ast"
+	"github.com/gilmae/monkey/lexer"
 )
 
 func TestAssignStatement(t *testing.T) {
@@ -140,6 +141,35 @@ func TestFunctionLiteralExpression(t *testing.T) {
 	}
 
 	testInfixExpression(t, bodyStmt.Expression, "x", "+", "y")
+}
+
+func TestFunctionLiteralWithName(t *testing.T) {
+	input := `let myFunction = fn(){};`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program has incorrect number of statements, got %d",
+			len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.LetStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.LetStatement, got %T",
+			program.Statements[0])
+	}
+
+	fn, ok := stmt.Value.(*ast.FunctionLiteral)
+	if !ok {
+		t.Fatalf("stmt is not *ast.FunctionLiteral, got %T", stmt.Value)
+	}
+
+	if fn.Name != "myFunction" {
+		t.Fatalf("function literal name wrong, want 'myFunction', got=%s", fn.Name)
+	}
 }
 
 func TestFunctionParamaterParsing(t *testing.T) {
@@ -739,6 +769,34 @@ func TestParsingHashLiteralsWithExpressions(t *testing.T) {
 		}
 
 		testFunc(value)
+	}
+}
+
+func TestParsingHashLiteralsWithFunctions(t *testing.T) {
+	input := `{"one": fn(){1;}, "two": fn(){2;}, "three": fn(){15 / 5}}`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	stmt := program.Statements[0].(*ast.ExpressionStatement)
+	hash, ok := stmt.Expression.(*ast.HashLiteral)
+	if !ok {
+		t.Fatalf("exp is not ast.HashLiteral. got=%T", stmt.Expression)
+	}
+
+	if len(hash.Pairs) != 3 {
+		t.Errorf("hash.Pairs has wrong length. got=%d", len(hash.Pairs))
+	}
+
+	for _, value := range hash.Pairs {
+
+		_, ok := value.(*ast.FunctionLiteral)
+		if !ok {
+			t.Fatalf("value is not *ast.FunctionLiteral, got %T", value)
+		}
+
 	}
 }
 

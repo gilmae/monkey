@@ -1,0 +1,2 @@
+let x = fn(){1};
+let y = fn(a){a*2};

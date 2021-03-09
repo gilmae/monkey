@@ -6,11 +6,11 @@ import (
 	"io/ioutil"
 	"os"
 
-	"monkey/evaluator"
-	"monkey/lexer"
-	"monkey/object"
-	"monkey/parser"
-	"monkey/repl"
+	"github.com/gilmae/monkey/compiler"
+	"github.com/gilmae/monkey/lexer"
+	"github.com/gilmae/monkey/parser"
+	"github.com/gilmae/monkey/repl"
+	"github.com/gilmae/monkey/vm"
 )
 
 const version = "1.0.1"
@@ -45,7 +45,6 @@ func main() {
 }
 
 func execute(input string) int {
-	env := object.NewEnvironment()
 	l := lexer.New(input)
 	p := parser.New(l)
 
@@ -57,10 +56,28 @@ func execute(input string) int {
 		os.Exit(1)
 	}
 
-	evaluated := evaluator.Eval(program, env)
+	// evaluated := evaluator.Eval(program, env)
 
-	if evaluated != nil && evaluated.Type() != object.NULL_OBJ {
-		fmt.Printf("%s\n", evaluated.Inspect())
+	// if evaluated != nil && evaluated.Type() != object.NULL_OBJ {
+	// 	fmt.Printf("%s\n", evaluated.Inspect())
+	// }
+	comp := compiler.New()
+	err := comp.Compile(program)
+
+	if err != nil {
+		fmt.Printf("Compile error:\n%s\n", err)
+		return 1
 	}
+
+	machine := vm.New(comp.Bytecode())
+	err = machine.Run()
+	if err != nil {
+		fmt.Printf("Executing bytecode failed:\n%s\n", err)
+		return 1
+	}
+
+	// stackTop := machine.LastPoppedStackElem()
+	// fmt.Printf("%s\n", stackTop.Inspect())
+
 	return 0
 }

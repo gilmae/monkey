@@ -4,10 +4,13 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"monkey/evaluator"
-	"monkey/lexer"
-	"monkey/object"
-	"monkey/parser"
+
+	"github.com/gilmae/monkey/compiler"
+	"github.com/gilmae/monkey/lexer"
+	"github.com/gilmae/monkey/parser"
+	"github.com/gilmae/monkey/vm"
+
+	"github.com/gilmae/monkey/object"
 )
 
 const PROMPT = ">> "
@@ -27,7 +30,14 @@ const MONKEY_FACE = `            __,__
 
 func Start(in io.Reader, out io.Writer) {
 	scanner := bufio.NewScanner(in)
-	env := object.NewEnvironment()
+	constants := []object.Object{}
+	globals := make([]object.Object, vm.GlobalSize)
+	symbolTable := compiler.NewSymbolTable()
+	for i, v := range object.Builtins {
+		symbolTable.DefineBuiltin(i, v.Name)
+	}
+
+	//env := object.NewEnvironment()
 
 	for {
 		fmt.Printf(PROMPT)
@@ -49,12 +59,33 @@ func Start(in io.Reader, out io.Writer) {
 			continue
 		}
 
-		evaluated := evaluator.Eval(program, env)
+		// evaluated := evaluator.Eval(program, env)
 
-		if evaluated != nil {
-			io.WriteString(out, evaluated.Inspect())
-			io.WriteString(out, "\n")
+		// if evaluated != nil {
+		// 	io.WriteString(out, evaluated.Inspect())
+		// 	io.WriteString(out, "\n")
+		// }
+
+		comp := compiler.NewWithState(symbolTable, constants)
+		err := comp.Compile(program)
+
+		if err != nil {
+			fmt.Fprintf(out, "Compile error:\n%s\n", err)
+			continue
 		}
+		code := comp.Bytecode()
+		constants = code.Constants
+		machine := vm.NewWithGlobalsStore(code, globals)
+		err = machine.Run()
+		if err != nil {
+			fmt.Fprintf(out, "Executing bytecode failed:\n%s\n", err)
+			continue
+		}
+
+		stackTop := machine.LastPoppedStackElem()
+		io.WriteString(out, stackTop.Inspect())
+		io.WriteString(out, "\n")
+
 	}
 }
 
