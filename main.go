@@ -13,7 +13,7 @@ import (
 	"github.com/gilmae/monkey/vm"
 )
 
-const version = "1.0.1"
+const version = "1.1.1"
 
 func main() {
 	// Set up flags
@@ -22,7 +22,7 @@ func main() {
 	flag.Parse()
 
 	if *showVersion {
-		fmt.Printf("Monkey v%s", version)
+		fmt.Printf("Monkey v%s\n", version)
 		os.Exit(1)
 	}
 
