@@ -1048,6 +1048,28 @@ func TestStringExpressions(t *testing.T) {
 	runCompilerTests(t, tests)
 }
 
+func TestUseExpression(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `use("foobar")`,
+			expectedConstants: []interface{}{
+				1,
+				[]code.Instructions{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstructions: []code.Instructions{
+				code.Make(code.OpClosure, 1, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpNull),
+				code.Make(code.OpPop),
+			},
+		},
+	}
+	runCompilerTests(t, tests)
+}
+
 func concatInstructions(s []code.Instructions) code.Instructions {
 	out := code.Instructions{}
 

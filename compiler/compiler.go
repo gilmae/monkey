@@ -76,7 +76,14 @@ func (c *Compiler) Compile(node ast.Node) error {
 				return err
 			}
 		}
-
+	case *ast.UseLiteral:
+		for _, s := range node.Body.Statements {
+			err := c.Compile(s)
+			if err != nil {
+				return err
+			}
+		}
+		c.emit(code.OpNull)
 	case *ast.ExpressionStatement:
 		err := c.Compile(node.Expression)
 		if err != nil {

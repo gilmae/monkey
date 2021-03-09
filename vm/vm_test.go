@@ -614,6 +614,16 @@ func TestStringExpressions(t *testing.T) {
 	runVmTests(t, tests)
 }
 
+func TestUseExpression(t *testing.T) {
+	tests := []vmTestCase{
+		{`use("foobar")`, Null},
+		{`use("foobar");x();`, 1},
+		{`use("foobar");y(x());`, 2},
+	}
+
+	runVmTests(t, tests)
+}
+
 func runVmTests(t *testing.T, tests []vmTestCase) {
 	t.Helper()
 
